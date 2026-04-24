@@ -309,19 +309,24 @@ public class GenericGraph<V> extends AbstractGraph<V> {
         order.finishOrder.add(current);
     }
 
-
+    //Class to hold Dijkstra's algorithm return values
 
     public static class DijkstraResult<V> {
+
+        //attributes
         public final List<V> vertices;
         public final List<Double> distances;
         public final List<V> previous;
 
+        //overloaded constructor
         public DijkstraResult(List<V> vertices, List<Double> distances, List<V> previous) {
             this.vertices = vertices;
             this.distances = distances;
             this.previous = previous;
         }
-        /** Returns shortest path from start to target */
+
+        //PRE:  accepts target
+        //POST: returns the shortest path from start to target  
         public List<V> getPathTo(V target) {
             List<V> path = new ArrayList<>();
 
@@ -337,17 +342,21 @@ public class GenericGraph<V> extends AbstractGraph<V> {
         }
     }
 
+    //PRE:  accepts starting vertex
+    //POST: performs Dijkstra's algorithm  
     public DijkstraResult<V> dijkstra(V start) {
+
+        //check conditions for Dijkstra's
         if (!weighted) 
-            throw new UnsupportedOperationException("Dijkstra requires a weighted graph.");
-                
+            throw new UnsupportedOperationException("Dijkstra requires a weighted graph.");  
         requireVertex(start);
+
+        //initialize working storage
         Set<V> unvisited = new HashSet<>();
         List<Double> distance = new ArrayList<>();
         List<V> previous = new ArrayList<>();
         List<V> vertices = vertices();
 
-        // initialization
         for (V v : vertices) {
             unvisited.add(v);
             distance.add(Double.POSITIVE_INFINITY);
@@ -405,16 +414,22 @@ public class GenericGraph<V> extends AbstractGraph<V> {
 
     //for use in Prims
     public static class Edge<V> implements Comparable<Edge> {
+        //attributes
         final V from;
         final V to;
         final double weight;
+
+        //overloaded constructor
         Edge(V from, V to, double weight) {
             this.from = from; this.to = to; this.weight = weight;
         }
+
+        //getters
         V getFrom() { return from; }
         V getTo()   { return to; }
         double getWeight() { return weight; }
         
+        //definition of how to compare Edges
         @Override
         public int compareTo(Edge other) {
             Double w1 = (Double)this.weight;
@@ -425,28 +440,41 @@ public class GenericGraph<V> extends AbstractGraph<V> {
         }
     }
 
+    //Class holding the results of Prim's algorithm
     public static class PrimResult<V> {
+
+        //attributes
         private final List<Edge<V>> mstEdges;
         private final double totalWeight;
 
+        //overloaded constructor
         public PrimResult(List<Edge<V>> mstEdges, double totalWeight) {
             this.mstEdges = mstEdges;
             this.totalWeight = totalWeight;
         }
+        //getters
         public double getTotalWeight(){return totalWeight;}
         public List<Edge<V>> getMstEdges(){return mstEdges;}
 
     }
 
+    //PRE:   accepts the starting vertex
+    //POST:  determines of the graph is weighted & undirected
+    //       ensures the starting vertex is in the graph
+    //       initializes the lists to set a reference to the vertices and lists for MST & visited set
+    //       & priority queue of edges where the edges are ordered by weight
     public PrimResult<V> prim(V start) {
+
+        //check conditions for Prims
         if (!weighted) {
             throw new UnsupportedOperationException("Prim requires a weighted graph.");
         }
         if (directed) {
             throw new UnsupportedOperationException("Prim requires an undirected graph.");
         }
-        
         requireVertex(start);
+
+        //initialize working storage
         List<V> vertices = vertices();
         List<Edge<V>> mst = new ArrayList<>();
         Set<V> visited = new HashSet<>();
@@ -454,6 +482,7 @@ public class GenericGraph<V> extends AbstractGraph<V> {
 
         double totalDistance = 0.0;
 
+        //add starting vertex to visited 
         visited.add(start);
 
         // add to the PQ the edges out of start
@@ -461,24 +490,27 @@ public class GenericGraph<V> extends AbstractGraph<V> {
             pq.add(new Edge<>(start, n, getWeight(start, n)));
         }
 
+        //loop until pq is not empty add there are vertices left to visit 
         while (!pq.isEmpty() && visited.size() < vertices.size()) {
+            //get shortest edge
             Edge<V> best = pq.poll();
 
-            V u = best.getFrom();
-            V v = best.getTo();
+            //set from & to vertices
+            V from = best.getFrom();
+            V to = best.getTo();
 
             // skip vertex if it has been visited
-            if (visited.contains(v)) continue;
+            if (visited.contains(to)) continue;
 
             // add vertex to visited & edge best to minimum spanning tree
-            visited.add(v);
+            visited.add(to);
             mst.add(best);
             totalDistance += best.getWeight();
 
             // add adjacent vertices if not visited to pq
-            for (V n : neighborsOf(v)) {
+            for (V n : neighborsOf(to)) {
                 if (!visited.contains(n)) {
-                    pq.add(new Edge<>(v, n, getWeight(v, n)));
+                    pq.add(new Edge<>(to, n, getWeight(to, n)));
                 }
             }
         }
